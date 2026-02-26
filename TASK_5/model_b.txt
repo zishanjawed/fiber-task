@@ -1,0 +1,149 @@
+===== INITIAL PROMPT (SHARED) =====
+# Initial Prompt (Shared for Model A and Model B)
+Task Directory: TASK_5
+Task Title: Graceful shutdown drain mode and timeout compliance
+Repository: https://github.com/gofiber/fiber
+Language and runtime: Go, Fiber v3 codebase
+Expected complexity: This is a realistic 100-150 minute development task.
+Reference context: Open issues #3370, #3431, and #2976 around shutdown timeout respect and graceful drain expectations.
+Working style: Act as a senior Fiber maintainer focused on correctness, compatibility, and performance.
+
+## 1) Problem Framing
+- Core problem: Shutdown behavior has open concerns around timeout compliance, in-flight request cancellation semantics, and deterministic draining behavior under SIGTERM-like shutdown flows.
+- This task must be solved in the actual Fiber codebase with production-quality behavior and tests.
+- The implementation should prioritize deterministic behavior under concurrency and lifecycle pressure.
+- Preserve existing defaults unless an explicit, documented behavior change is required.
+- Keep the change reviewable by separating foundational refactors from behavior changes.
+
+## 2) Primary Files and Surfaces
+01. `listen.go`
+02. `app.go`
+03. `listen_test.go`
+04. `app_test.go`
+05. `app_integration_test.go`
+Add additional files only when justified by tests, docs, or architecture boundaries.
+Do not spread changes across unrelated packages.
+
+## 3) Required Outcomes
+01. Respect shutdown timeout semantics for long-lived active connections.
+02. Preserve in-flight request contexts until request completion or forced deadline.
+03. Introduce explicit drain-state behavior for newly arriving requests.
+04. Keep hook ordering (pre/post shutdown) consistent and testable.
+05. Cover stream responses and slow handlers in integration tests.
+06. Document operational behavior for graceful versus forced shutdown paths.
+All outcomes must be demonstrated with automated tests and code-level evidence.
+
+## 4) Edge Cases You Must Handle
+01. Multiple concurrent shutdown invocations from different goroutines.
+02. Prefork child process behavior during coordinated shutdown.
+03. Shutdown called while server is not running.
+04. Forced timeout while streaming response is mid-flight.
+Edge-case handling should be explicit, deterministic, and verified by tests.
+
+## 5) Mandatory Implementation Requirements
+01. Preserve existing public APIs unless this task explicitly requires a new API or signature change.
+02. Keep default behavior backward compatible when introducing new options or config fields.
+03. Avoid hidden global state changes; prefer explicit dependency/config wiring.
+04. Maintain deterministic behavior under concurrent request execution.
+05. Avoid unnecessary allocations in request hot paths.
+06. Do not silently swallow errors; return wrapped errors with context where appropriate.
+07. Keep panic behavior and recovery semantics explicit and test-covered.
+08. Use table-driven tests for behavioral matrices and edge-case permutations.
+09. Use helper functions to isolate parsing/matching/business logic from orchestration glue.
+10. Ensure naming consistency with existing Fiber conventions and package style.
+11. Do not duplicate logic if existing helpers can be reused safely.
+12. Validate new config values and fail fast on invalid setup where needed.
+13. Keep comments concise and focused on non-obvious implementation choices.
+14. Preserve routing/middleware execution order unless task requires a documented change.
+15. Avoid introducing import cycles or broad package boundary violations.
+16. Add focused benchmarks when touching a path known to be latency or allocation sensitive.
+17. Maintain thread-safety for pooled objects, sync.Pool lifecycle, and shared maps.
+18. Keep generated interfaces and wrappers in sync when adding new methods.
+19. Update docs/examples alongside behavior changes so API users are not surprised.
+20. Leave the codebase in a releasable state with no pending TODO markers from this task.
+
+## 6) Mandatory Testing and Benchmark Requirements
+01. Add or update unit tests for all core behavior paths touched by this task.
+02. Include at least one regression test that would fail on the previous implementation.
+03. Cover at least one negative-path validation scenario.
+04. Cover at least one boundary condition related to lifecycle or configuration.
+05. Add concurrency-oriented tests when shared state or context pooling is modified.
+06. If middleware behavior changes, test both middleware-enabled and bypass/skipped flows.
+07. If routing behavior changes, include tests for 404/405 and method variants.
+08. If parser/binder behavior changes, test malformed input and strict/lenient modes.
+09. If shutdown/lifecycle behavior changes, include timing-aware or coordination tests.
+10. If client behavior changes, test cancellation and retry interactions.
+11. If storage behavior changes, run race-prone tests with parallel operations.
+12. Keep tests deterministic and avoid excessive sleeps where synchronization primitives can be used.
+13. Add benchmark coverage for modified hot paths when measurable impact is expected.
+14. Ensure tests assert both status/body and side effects where relevant.
+15. Verify compatibility with custom context or mounted app paths where applicable.
+16. Run focused package tests plus a broader safety run across related packages.
+
+## 7) Quality Gates (Must Be True Before Done)
+01. Behavioral correctness gate: new feature works as specified for happy paths.
+02. Regression gate: existing behavior remains intact when new options are disabled.
+03. Error clarity gate: returned errors are actionable and non-ambiguous.
+04. Concurrency gate: no newly introduced races in modified shared-state code.
+05. Performance gate: no unacceptable regression in touched hot paths.
+06. API gate: exported signatures and docs are aligned.
+07. Config gate: defaults and validation are explicit and tested.
+08. Lifecycle gate: startup/shutdown/context flows remain predictable.
+09. Middleware gate: chaining and skip behavior are not broken.
+10. Routing gate: path and method matching remain deterministic.
+11. Parsing gate: malformed payloads are handled without panics.
+12. Storage gate: data ownership and mutability semantics are clear.
+13. Logging gate: no accidental sensitive data exposure in new logs.
+14. Compatibility gate: old call patterns continue to compile and run.
+15. Maintainability gate: duplication is minimized and helpers are reusable.
+16. Readability gate: non-obvious logic is documented with concise comments.
+17. Test depth gate: matrix includes positive, negative, and boundary cases.
+18. Test reliability gate: tests are deterministic and minimally flaky.
+19. Benchmark gate: benchmark commands are documented when added.
+20. Docs gate: user-facing behavior changes are reflected in docs.
+21. Failure-mode gate: partial-failure behavior is explicit and test-covered.
+22. Fallback gate: fallback/default branches are validated.
+23. Cleanup gate: remove dead code and stale compatibility shims if unnecessary.
+24. Release gate: task can be merged without follow-up emergency fixes.
+
+## 8) Non-Goals
+01. Do not redesign unrelated packages beyond what is necessary for this task.
+02. Do not introduce broad stylistic refactors that obscure functional changes.
+03. Do not change wire formats or response contracts unless explicitly required.
+04. Do not weaken existing security defaults while adding flexibility.
+05. Do not bypass tests to make CI green; fix root causes instead.
+06. Do not add hidden breaking changes behind undocumented behavior.
+07. Do not leave benchmark-impacting changes unmeasured when they affect hot paths.
+08. Do not merge partial implementations that fail acceptance criteria.
+
+## 9) Delivery Checklist
+01. Prepare a short design note explaining tradeoffs and chosen approach.
+02. Land tests first or in lockstep with implementation for each behavior cluster.
+03. Keep commits logically grouped by concern (parser/core/tests/docs).
+04. Run targeted tests after each major code slice.
+05. Run broader validation before finalizing the task.
+06. Record benchmark output when relevant and summarize deltas.
+07. Update docs/examples/changelog fragments tied to behavior changes.
+08. Summarize final behavior differences versus baseline implementation.
+09. List residual risks and any deferred work explicitly.
+10. Ensure code review can map each requirement to concrete file changes.
+
+## 10) Completion Criteria
+1. The new behavior is implemented and covered by focused tests.
+2. Existing behavior is preserved when new options/features are not enabled.
+3. Concurrency/lifecycle safety is validated where applicable.
+4. Benchmarks are added or updated for touched hot paths.
+5. Documentation and examples are updated to reflect new behavior.
+6. Code is readable, minimally invasive, and ready for maintainer review.
+
+===== FOLLOW-UP PROMPTS (MODEL B) =====
+1. For TASK_5 (Graceful shutdown drain mode and timeout compliance), begin by drafting a current-versus-target behavior matrix before touching production code. Use that matrix to define acceptance test names and expected outcomes.
+2. Create a short spike in listen.go to validate feasibility, then replace it with production-grade logic. Keep the spike traceable so reviewers can see why the final design was chosen.
+3. Treat API stability as a first-class concern while implementing Graceful shutdown drain mode and timeout compliance. If you add configuration or signatures, include compatibility checks for existing call patterns.
+4. Design error and fallback behavior first, then encode those rules in tests before tightening implementation details. This will prevent accidental drift in failure semantics.
+5. Stress concurrency-sensitive paths with parallel tests and lifecycle coordination scenarios. Focus on cancellation, pooling, and shared mutable state boundaries.
+6. Collect before/after benchmark data for the exact path changed by TASK_5. Consider any measurable regression a blocker unless there is documented justification.
+7. Write migration-focused documentation that explains how old behavior compares to the new behavior. Include one minimal and one advanced usage example relevant to maintainers.
+8. Run a consistency pass across names, comments, and test case wording so semantics stay coherent. Eliminate ambiguous terminology before finalizing.
+9. Execute a strict validation sequence: targeted package tests, related integration-style tests, and benchmark commands when applicable. Record the exact command list for reproducibility.
+10. Finish TASK_5 with a reviewer checklist that links each requirement to a file or test. Make the review process deterministic and low-friction.
