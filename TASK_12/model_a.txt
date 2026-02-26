@@ -7,7 +7,6 @@ Problem Framing
 - Keep old defaults stable for users.
 - Keep the code easy to review.
 - Context note: this task comes from a real Fiber issue or TODO.
-- Target effort is about 100 to 150 minutes.
 - Use simple and clear design steps.
 - Keep changes focused on the files listed below.
 
