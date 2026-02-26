@@ -1,0 +1,141 @@
+TASK_10: Strict unknown-field rejection for JSON binding
+
+Problem Framing
+- Main problem: Improve Fiber for this task: Strict unknown-field reject for JSON binding.
+- This is a real task for the Fiber code base.
+- Solve it with safe code and clear tests.
+- Keep old defaults stable for users.
+- Keep the code easy to review.
+- Context note: this task comes from a real Fiber issue or TODO.
+- Use simple and clear design steps.
+- Keep changes focused on the files listed below.
+
+Key Files
+- app.go
+- bind.go
+- binder/json.go
+- bind_test.go
+- binder/json_test.go
+- binder/README.md
+- You may touch close-by files if tests or docs need it.
+- Do not spread changes into unrelated areas.
+
+Main Goals
+- Main target: Main target: add an optional strict option for unknown JSON field reject.
+- Second target: Second target: Expose strict option through clear API or config plumbing.
+- Keep old default behavior working.
+- Add clear checks for bad input and bad states.
+- Add tests for happy path and error path.
+- Add edge case tests listed below.
+- Update docs so users can use the change.
+- Keep speed safe on hot paths.
+- Keep logs and errors easy to read.
+- Show proof for each goal in tests.
+- Keep behavior clear for users and maintainers.
+
+Edge Cases
+- Custom JSON decoder connection must stay functional.
+- Vendor-specific JSON content-types remain supported.
+- Map destinations should not be broken by strict struct checking.
+- Empty body and malformed JSON errors remain easy to tell apart.
+- Edge paths must be tested and work the same each time.
+
+Build Rules
+- Keep old behavior the same when new options are off.
+- Only change code that is needed for this task.
+- Do not break public APIs unless this task asks for it.
+- Use small helper functions when logic gets long.
+- Keep names clear and easy to read.
+- Return errors with clear messages.
+- Do not hide errors or ignore real failures.
+- Handle race risks when code uses shared state.
+- Think about speed for hot code paths.
+- Avoid extra memory use in request loops.
+- Reuse current helpers when they fit.
+- Do not copy and paste big logic blocks.
+- Keep comments short and useful.
+- Do not add TODO notes for core missing work.
+- Keep middleware order stable unless task needs a change.
+- Keep route match order stable unless task needs a change.
+- Validate config values early.
+- Fail fast for bad setup values.
+- Keep package boundaries clean.
+- Do not create import cycles.
+
+Test Plan
+- Add tests for each new behavior path.
+- Add at least one test that fails on old code.
+- Add a bad input test.
+- Add a border case test.
+- Add a case with old defaults to prove no break.
+- Add at least one table test for mixed cases.
+- Add a parallel test when shared state changes.
+- Add timeout or cancel test when lifecycle changes.
+- Check status, body, and side effects in tests.
+- Use stable sync tools over long sleeps.
+- Keep tests fast and repeatable.
+- Add benchmarks if a hot path changed.
+- Run package tests after each major change.
+- Run a wider safety test pass at the end.
+- Make sure no flaky tests are left.
+- Keep test names clear and direct.
+
+Quality Check
+- Feature works in normal use.
+- Old behavior is still safe when new mode is off.
+- Errors are clear for users and maintainers.
+- No new race issues are added.
+- No big speed drop in hot paths.
+- No hidden API break is added.
+- Docs match real behavior.
+- Config defaults are clear.
+- Fallback paths are tested.
+- Failure paths are tested.
+- Logs do not leak sensitive values.
+- Code is easy to review.
+- Change size is focused.
+- Edge cases are covered.
+- Build is clean and tests pass.
+
+Not In Scope
+- Do not refactor unrelated packages.
+- Do not change style across whole repo.
+- Do not change wire format without need.
+- Do not weaken safe defaults.
+- Do not skip tests just to pass fast.
+- Do not land half-done behavior.
+
+Work Plan
+- Read current code and list behavior now.
+- Write target behavior list for this task.
+- Add failing tests first for key cases.
+- Implement smallest useful code change.
+- Run tests and fix red cases.
+- Add edge and negative tests.
+- Tune code for speed and safety.
+- Update docs and examples.
+- Run full checks for touched areas.
+- Write final review notes with proof.
+
+Done Means
+- Code meets all goals in this prompt.
+- All required tests pass.
+- Defaults keep old behavior safe.
+- New behavior is easy to understand.
+- Docs explain how to use the change.
+- No known blocker is left.
+- Share a short final note with test commands and results.
+- Map each main goal to code and tests.
+- Explain any risk that is still open.
+
+Follow Up Prompts for Model A
+1. Start by adding tests around app.go. Make sure one key test fails first so you can prove the gap for Strict unknown-field rejection for JSON binding.
+2. Build the smallest code change that can pass the first failing test. Keep this step tight so review is easy.
+3. Next, add input checks and clear error messages. Test good input and bad input in the same pass.
+4. Now cover edge paths from this task one by one. Keep each edge case in its own test block.
+5. After that, check shared state and race risk. Add a parallel test if the code can run in many goroutines.
+6. Then add old default behavior tests to prove backward safety. This helps stop silent breaks for current users.
+7. If a hot path changed, add or update a benchmark. Compare before and after results and write a short note.
+8. Update docs and examples in the touched area. Use short words so new users can follow fast.
+9. Run focused tests in touched packages and fix every failure. Then run a wider safety test pass.
+10. Finish with a clear summary. List code files, tests added, and how each main goal is met.

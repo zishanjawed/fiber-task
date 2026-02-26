@@ -1,0 +1,140 @@
+TASK_17: Route matching hot-path optimization with benchmark harness
+
+Problem Framing
+- Main problem: Improve Fiber for this task: Route matching hot-path optimization with speed test harness.
+- This is a real task for the Fiber code base.
+- Solve it with safe code and clear tests.
+- Keep old defaults stable for users.
+- Keep the code easy to review.
+- Context note: this task comes from a real Fiber issue or TODO.
+- Use simple and clear design steps.
+- Keep changes focused on the files listed below.
+
+Key Files
+- router.go
+- path.go
+- router_test.go
+- path_test.go
+- path_testcases_test.go
+- You may touch close-by files if tests or docs need it.
+- Do not spread changes into unrelated areas.
+
+Main Goals
+- Main target: Main target: Identify and optimize high-cost matching branches in route traversal.
+- Second target: Second target: Add speed test cases for large route sets with mixed static/param/wildcard paths.
+- Keep old default behavior working.
+- Add clear checks for bad input and bad states.
+- Add tests for happy path and error path.
+- Add edge case tests listed below.
+- Update docs so users can use the change.
+- Keep speed safe on hot paths.
+- Keep logs and errors easy to read.
+- Show proof for each goal in tests.
+- Keep behavior clear for users and maintainers.
+
+Edge Cases
+- Many routes sharing long common prefixes.
+- Optional params and greedy wildcards under strict routing.
+- Unescaped and escaped path fragments with unicode content.
+- Cross-method Allow header computation under heavy route counts.
+- Edge paths must be tested and work the same each time.
+
+Build Rules
+- Keep old behavior the same when new options are off.
+- Only change code that is needed for this task.
+- Do not break public APIs unless this task asks for it.
+- Use small helper functions when logic gets long.
+- Keep names clear and easy to read.
+- Return errors with clear messages.
+- Do not hide errors or ignore real failures.
+- Handle race risks when code uses shared state.
+- Think about speed for hot code paths.
+- Avoid extra memory use in request loops.
+- Reuse current helpers when they fit.
+- Do not copy and paste big logic blocks.
+- Keep comments short and useful.
+- Do not add TODO notes for core missing work.
+- Keep middleware order stable unless task needs a change.
+- Keep route match order stable unless task needs a change.
+- Validate config values early.
+- Fail fast for bad setup values.
+- Keep package boundaries clean.
+- Do not create import cycles.
+
+Test Plan
+- Add tests for each new behavior path.
+- Add at least one test that fails on old code.
+- Add a bad input test.
+- Add a border case test.
+- Add a case with old defaults to prove no break.
+- Add at least one table test for mixed cases.
+- Add a parallel test when shared state changes.
+- Add timeout or cancel test when lifecycle changes.
+- Check status, body, and side effects in tests.
+- Use stable sync tools over long sleeps.
+- Keep tests fast and repeatable.
+- Add benchmarks if a hot path changed.
+- Run package tests after each major change.
+- Run a wider safety test pass at the end.
+- Make sure no flaky tests are left.
+- Keep test names clear and direct.
+
+Quality Check
+- Feature works in normal use.
+- Old behavior is still safe when new mode is off.
+- Errors are clear for users and maintainers.
+- No new race issues are added.
+- No big speed drop in hot paths.
+- No hidden API break is added.
+- Docs match real behavior.
+- Config defaults are clear.
+- Fallback paths are tested.
+- Failure paths are tested.
+- Logs do not leak sensitive values.
+- Code is easy to review.
+- Change size is focused.
+- Edge cases are covered.
+- Build is clean and tests pass.
+
+Not In Scope
+- Do not refactor unrelated packages.
+- Do not change style across whole repo.
+- Do not change wire format without need.
+- Do not weaken safe defaults.
+- Do not skip tests just to pass fast.
+- Do not land half-done behavior.
+
+Work Plan
+- Read current code and list behavior now.
+- Write target behavior list for this task.
+- Add failing tests first for key cases.
+- Implement smallest useful code change.
+- Run tests and fix red cases.
+- Add edge and negative tests.
+- Tune code for speed and safety.
+- Update docs and examples.
+- Run full checks for touched areas.
+- Write final review notes with proof.
+
+Done Means
+- Code meets all goals in this prompt.
+- All required tests pass.
+- Defaults keep old behavior safe.
+- New behavior is easy to understand.
+- Docs explain how to use the change.
+- No known blocker is left.
+- Share a short final note with test commands and results.
+- Map each main goal to code and tests.
+- Explain any risk that is still open.
+
+Follow Up Prompts for Model B
+1. Draw a quick flow chart for Route matching hot-path optimization with speed test harness before coding. Mark where router.go enters the flow and where it exits.
+2. Write three failure stories in plain words. Use those stories to decide what errors and status codes you need.
+3. Create a tiny fake setup to try one idea fast. Keep notes, then throw the fake code away and build the real version.
+4. Use a guard-rail style build: add one safety check, then one test, then one small code change. Repeat this loop until all safety checks pass.
+5. Build test groups by user story, not by file name. This helps readers see what the app user feels at each step.
+6. Run a replay pass for old behavior with defaults on. If any old flow breaks, stop and fix before new work continues.
+7. Do a mini load check with short loops or speed tests. If the new code slows too much, trim the heavy parts.
+8. Read every new error text out loud and make it shorter. Keep each message direct so junior devs can debug fast.
+9. Run checks in a ladder: quick unit tests first, then related package tests, then wider safety tests. Save command output for review proof.
+10. Close with a ship note that lists risks, limits, and next steps. Link each goal to at least one passing test.
